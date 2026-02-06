@@ -1,0 +1,24 @@
+# Ignore Firebase Admin credentials
+serviceAccountKey.json
+
+# Ignore environment files
+.env
+.env.*
+*.env
+
+# Ignore keys and certificates
+*.key
+*.pem
+*.p12
+*.cert
+
+# Ignore log files
+*.log
+
+# Ignore node_modules
+node_modules/
+
+# Ignore OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
