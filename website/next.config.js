@@ -3,7 +3,8 @@ const ContentSecurityPolicy = `
 
   script-src 
     'self' 
-    'unsafe-inline' 
+    'unsafe-inline'
+    'unsafe-eval'
     https://apis.google.com 
     https://www.gstatic.com 
     https://accounts.google.com;
@@ -32,7 +33,8 @@ const ContentSecurityPolicy = `
     data:;
 
   frame-src 
-    https://accounts.google.com;
+    https://accounts.google.com
+    https://apis.google.com;
 `;
 
 const nextConfig = {
@@ -52,10 +54,7 @@ const nextConfig = {
       },
     ],
   },
-};
 
-module.exports = {
-  ...nextConfig,
   async headers() {
     return [
       {
@@ -65,8 +64,14 @@ module.exports = {
             key: "Content-Security-Policy",
             value: ContentSecurityPolicy.replace(/\n/g, ""),
           },
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "unsafe-none",   // 🔥 REQUIRED for Firebase popup
+          },
         ],
       },
     ];
   },
 };
+
+module.exports = nextConfig;
