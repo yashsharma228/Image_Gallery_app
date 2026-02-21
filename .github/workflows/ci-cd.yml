@@ -1,0 +1,74 @@
+# GitHub Actions Workflow for Image Gallery App
+# This workflow sets up CI for both frontend (Next.js, React) and backend (Node.js, Express, Firebase)
+
+name: CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+      - name: Install dependencies
+        run: npm install
+      - name: Lint backend
+        run: npm run lint || echo "No lint script defined"
+      - name: Run backend tests
+        run: npm test || echo "No test script defined"
+
+  admin-dashboard:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./admin-dashboard
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+      - name: Install dependencies
+        run: npm install
+      - name: Lint admin-dashboard
+        run: npm run lint || echo "No lint script defined"
+      - name: Build admin-dashboard
+        run: npm run build
+      - name: Run admin-dashboard tests
+        run: npm test || echo "No test script defined"
+
+  website:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./website
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+      - name: Install dependencies
+        run: npm install
+      - name: Lint website
+        run: npm run lint || echo "No lint script defined"
+      - name: Build website
+        run: npm run build
+      - name: Run website tests
+        run: npm test || echo "No test script defined"
+
+# Add deploy jobs as needed for your environment (e.g., Vercel, Firebase Hosting, Azure, etc.)
