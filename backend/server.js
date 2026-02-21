@@ -1,4 +1,5 @@
 const express = require('express');
+const helmet = require('helmet');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -14,6 +15,18 @@ app.use(cors({
   origin: true,
   credentials: true
 }));
+// Set Content Security Policy to allow fonts and images from self and data URIs
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      fontSrc: ["'self'", "data:"],
+      imgSrc: ["'self'", "data:"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+    },
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
