@@ -44,6 +44,14 @@ app.use('/api/images', require('./routes/images'));
 app.use('/api/likes', require('./routes/likes'));
 app.use('/api/comments', require('./routes/comments'));
 
+// Health check endpoint
+app.get("/", (req, res) => {
+  res.json({
+    status: "success",
+    message: "Backend is running 🚀"
+  });
+});
+
 // Google Auth Route
 const admin = require("./firebaseAdmin");
 app.post("/api/auth/google", async (req, res) => {
