@@ -25,7 +25,9 @@ const ContentSecurityPolicy = `
   img-src 
     'self' 
     data: 
+    blob:
     https://res.cloudinary.com 
+    https://*.cloudinary.com
     https://lh3.googleusercontent.com 
     https://ui-avatars.com 
     https://*.amazonaws.com;
