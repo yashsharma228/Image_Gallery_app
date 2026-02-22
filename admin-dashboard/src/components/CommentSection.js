@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 export default function CommentSection({ imageId, showModal, setShowModal, user }) {
@@ -6,7 +6,8 @@ export default function CommentSection({ imageId, showModal, setShowModal, user 
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const fetchComments = React.useCallback(async () => {
+  // ✅ Define FIRST, use useCallback
+  const fetchComments = useCallback(async () => {
     try {
       const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/comments/${imageId}`);
       setComments(res.data);
@@ -15,9 +16,10 @@ export default function CommentSection({ imageId, showModal, setShowModal, user 
     }
   }, [imageId]);
 
+  // ✅ Use AFTER definition
   useEffect(() => {
     if (showModal) fetchComments();
-  }, [imageId, showModal, fetchComments]);
+  }, [showModal, fetchComments]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
