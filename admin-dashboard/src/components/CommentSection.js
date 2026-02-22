@@ -8,7 +8,8 @@ export default function CommentSection({ imageId, showModal, setShowModal, user 
 
   useEffect(() => {
     if (showModal) fetchComments();
-  }, [imageId, showModal]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imageId, showModal, fetchComments]);
 
   const fetchComments = async () => {
     try {

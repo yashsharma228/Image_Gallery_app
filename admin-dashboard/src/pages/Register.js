@@ -40,7 +40,7 @@ const Register = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await authAPI.register(
+      await authAPI.register(
         formData.email,
         formData.password,
         formData.name
