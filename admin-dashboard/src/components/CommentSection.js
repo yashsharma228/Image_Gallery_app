@@ -6,19 +6,18 @@ export default function CommentSection({ imageId, showModal, setShowModal, user 
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (showModal) fetchComments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imageId, showModal, fetchComments]);
-
-  const fetchComments = async () => {
+  const fetchComments = React.useCallback(async () => {
     try {
       const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/comments/${imageId}`);
       setComments(res.data);
     } catch (err) {
       setComments([]);
     }
-  };
+  }, [imageId]);
+
+  useEffect(() => {
+    if (showModal) fetchComments();
+  }, [imageId, showModal, fetchComments]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
