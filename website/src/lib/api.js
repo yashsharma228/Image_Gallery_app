@@ -1,8 +1,27 @@
 import axios from 'axios';
 
+// Ensure baseURL ends with /api, fallback to localhost for local development
+const getBaseURL = () => {
+  const url = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
+  return url.replace(/\/$/, '') + (url.includes('/api') ? '' : '/api');
+};
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
-  withCredentials: true // Send cookies with every request
+  baseURL: getBaseURL(),
+  withCredentials: true,
+  timeout: 30000,
+  headers: { 'Content-Type': 'application/json' }
+});
+
+// Add auth token to requests that need it
+api.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
 });
 
 export const imageAPI = {

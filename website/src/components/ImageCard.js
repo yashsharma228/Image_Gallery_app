@@ -37,11 +37,11 @@ const ImageCard = ({ image, userId, onLikeChange }) => {
       {/* Admin info */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-2">
         <img
-          src={image.adminAvatar || '/admin-avatar.png'}
-          alt={image.adminName || 'Admin'}
+          src={image.uploadedBy?.avatar || '/admin-avatar.png'}
+          alt={image.uploadedBy?.name || 'Admin'}
           className="w-8 h-8 rounded-full border object-cover"
         />
-        <span className="font-semibold text-gray-800">{image.adminName || 'Admin'}</span>
+        <span className="font-semibold text-gray-800">{image.uploadedBy?.name || 'Admin'}</span>
       </div>
       {/* Image */}
       <div className="relative w-full h-64 bg-gray-100">
@@ -78,7 +78,7 @@ const ImageCard = ({ image, userId, onLikeChange }) => {
         <p className="text-sm text-gray-700 mb-2 line-clamp-2">{image.description}</p>
         {/* Comment Section */}
         <div className="mt-3">
-          <CommentSection imageId={image._id} user={{ id: userId, name: image.uploaderName, avatar: image.uploaderAvatar }} />
+          <CommentSection imageId={image._id} user={{ id: userId, name: image.uploadedBy?.name, avatar: image.uploadedBy?.avatar }} />
         </div>
       </div>
     </div>

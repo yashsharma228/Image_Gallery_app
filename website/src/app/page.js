@@ -13,19 +13,23 @@ export default function Home() {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState('newest');
+  const [fetchError, setFetchError] = useState(null);
 
   useEffect(() => {
     fetchImages();
-  }, [sort, user]);
+  }, [sort, user?.id]);
 
   const fetchImages = async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const response = await imageAPI.getAll({ sort, userId: user?.id });
-      setImages(response.data || []);
+      const data = Array.isArray(response.data) ? response.data : [];
+      setImages(data);
     } catch (error) {
       console.error('Error fetching images:', error);
       setImages([]);
+      setFetchError(error.response?.data?.message || error.message || 'Failed to load images. Check if the backend is running.');
     } finally {
       setLoading(false);
     }
@@ -70,19 +74,33 @@ export default function Home() {
             )}
           </div>
 
+          {/* Error message */}
+          {fetchError && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+              <p className="font-semibold">⚠️ {fetchError}</p>
+              <p className="text-sm mt-1">Ensure backend is running at http://localhost:5000</p>
+              <button
+                onClick={fetchImages}
+                className="mt-2 px-4 py-2 bg-red-100 hover:bg-red-200 rounded font-semibold"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
           {/* Images Grid */}
           {loading ? (
             <div className="text-center py-12">
               <Loader />
             </div>
-          ) : images.length === 0 ? (
+          ) : images.length === 0 && !fetchError ? (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">No images available yet.</p>
               {!user && (
                 <p className="text-gray-400 text-sm mt-2">Sign in to upload and manage images (admin only).</p>
               )}
             </div>
-          ) : (
+          ) : images.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {images.map((image) => (
                 <ImageCard
@@ -93,7 +111,7 @@ export default function Home() {
                 />
               ))}
             </div>
-          )}
+          ) : null}
         </div>
       </main>
     </>

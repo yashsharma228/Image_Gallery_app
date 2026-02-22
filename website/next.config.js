@@ -12,6 +12,8 @@ const ContentSecurityPolicy = `
 
   connect-src 
     'self' 
+    http://localhost:5000
+    http://127.0.0.1:5000
     https://image-gallery-app-9x2r.onrender.com
     https://identitytoolkit.googleapis.com
     https://securetoken.googleapis.com
@@ -24,7 +26,9 @@ const ContentSecurityPolicy = `
     'self' 
     data: 
     https://res.cloudinary.com 
-    https://lh3.googleusercontent.com;
+    https://lh3.googleusercontent.com 
+    https://ui-avatars.com 
+    https://*.amazonaws.com;
 
   style-src 
     'self' 
@@ -55,6 +59,10 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "ui-avatars.com",
       },
     ],
   },
