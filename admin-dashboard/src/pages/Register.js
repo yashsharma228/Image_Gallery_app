@@ -56,7 +56,7 @@ const Register = () => {
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
       <div className="bg-white rounded-lg shadow-xl p-8 w-96">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Admin Register</h2>
+        <h2 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 mb-6 text-center">Framely Admin Register</h2>
         
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">

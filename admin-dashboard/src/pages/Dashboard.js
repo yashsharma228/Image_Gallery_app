@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { imagesAPI, authAPI } from '../api';
+import { imagesAPI, authAPI, usersAPI } from '../api';
 import ImageGrid from '../components/ImageGrid';
 import ImageModal from '../components/ImageModal';
 
@@ -8,9 +8,13 @@ const Dashboard = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showUploadForm, setShowUploadForm] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [admin, setAdmin] = useState(null);
+  const [showAdminProfile, setShowAdminProfile] = useState(false);
   const navigate = useNavigate();
+
 
 
   useEffect(() => {
@@ -27,7 +31,21 @@ const Dashboard = () => {
     };
     fetchAdmin();
     fetchImages();
+    fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    setUsersLoading(true);
+    try {
+      const response = await usersAPI.getAll();
+      setUsers(response.data.users || []);
+    } catch (error) {
+      setUsers([]);
+      console.error('Error fetching users:', error);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
 
   const fetchImages = async () => {
     setLoading(true);
@@ -46,147 +64,149 @@ const Dashboard = () => {
     navigate('/login');
   };
 
-  return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">🖼️ Image Gallery Admin</h1>
-            <p className="text-sm text-blue-100">Manage your image collection</p>
-          </div>
-          <div className="flex items-center gap-4">
-            {/* Removed admin name and email from navbar */}
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Stats Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
+    return (
+      <div className="min-h-screen bg-gray-50 flex">
+        {/* Sidebar removed as per request */}
+        <div className="flex-1 flex flex-col min-h-screen">
+          {/* Header */}
+          <header className="w-full shadow-lg bg-white border-b border-gray-200">
+            <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
               <div>
-                <p className="text-gray-600 text-sm">Total Images</p>
-                <p className="text-3xl font-bold text-gray-800">{images.length}</p>
+                <h1 className="text-3xl font-extrabold text-gray-900">Framely Admin</h1>
+                <p className="text-sm text-gray-500">Manage your image collection</p>
               </div>
-              <div className="text-4xl">📸</div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Total Likes</p>
-                <p className="text-3xl font-bold text-gray-800">
-                  {images.reduce((sum, img) => sum + (img.likeCount || 0), 0)}
-                </p>
-              </div>
-              <div className="text-4xl">❤️</div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center gap-4">
-              <img
-                src={admin?.profilePicture || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(admin?.name || 'Admin')}
-                alt="Admin profile"
-                className="w-16 h-16 rounded-full object-cover border-2 border-blue-400"
-              />
-              <div>
-                <p className="text-xl font-bold text-gray-800">{admin?.name || 'Admin'}</p>
-                {admin?.email && (
-                  <a href={`mailto:${admin.email}`} className="text-blue-600 underline text-sm">{admin.email}</a>
-                )}
+              <div className="flex items-center gap-4">
+                <button
+                  className="rounded-full border border-gray-300 bg-gray-100 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-200 transition"
+                  title="Admin Profile"
+                  onClick={() => setShowAdminProfile(true)}
+                >
+                  Admin Profile
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="gradient-btn px-4 py-2 font-semibold"
+                >
+                  Logout
+                </button>
               </div>
             </div>
+          </header>
+
+        <div className="max-w-7xl mx-auto px-4 py-8 w-full">
+          {/* Stat Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="p-6 flex flex-col items-center text-center bg-white border border-gray-200 rounded-2xl shadow">
+              <span className="text-3xl font-bold text-black">{images.length}</span>
+              <span className="text-black">Total Images</span>
+            </div>
+            <div className="p-6 flex flex-col items-center text-center bg-white border border-gray-200 rounded-2xl shadow">
+              <span className="text-4xl mb-2">❤️</span>
+              <span className="text-2xl font-bold text-black">{images.reduce((sum, img) => sum + (img.likeCount || 0), 0)}</span>
+              <span className="text-black">Total Likes</span>
+            </div>
+            <div className="p-6 flex flex-col items-center text-center bg-white border border-gray-200 rounded-2xl shadow min-h-[120px]">
+              <span className="text-4xl mb-2">👤</span>
+              <span className="text-2xl font-bold text-black">
+                {usersLoading ? '...' : users.length}
+              </span>
+              <span className="text-black">Total Users</span>
+              {/* Show user details in a scrollable area if users exist */}
+              {users.length > 0 && (
+                <div className="mt-2 max-h-32 overflow-y-auto w-full text-xs text-left">
+                  {users.map(u => (
+                    <div key={u._id} className="border-b border-gray-100 py-1">
+                      <span className="font-semibold">{u.name || u.email}</span>
+                      <span className="ml-2 text-gray-400">{u.email}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-4 mb-8">
-          <button
-            onClick={() => setShowUploadForm(true)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg transition transform hover:scale-105"
-          >
-            ➕ Upload Image
-          </button>
-          <button
-            onClick={fetchImages}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg transition"
-          >
-            🔄 Refresh
-          </button>
-        </div>
-
-        {/* Upload Form */}
-        {showUploadForm && (
-          <UploadForm
-            onSuccess={() => {
-              setShowUploadForm(false);
-              fetchImages();
-            }}
-            onClose={() => setShowUploadForm(false)}
-          />
-        )}
-
-        {/* Images Grid */}
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-            <p className="mt-4 text-gray-600">Loading images...</p>
-          </div>
-        ) : images.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <div className="text-6xl mb-4">📷</div>
-            <p className="text-xl text-gray-600 mb-2">No images uploaded yet</p>
-            <p className="text-gray-500 mb-6">Click "Upload Image" to get started</p>
+          {/* Action Buttons */}
+          <div className="flex gap-4 mb-8">
             <button
               onClick={() => setShowUploadForm(true)}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold"
+              className="gradient-btn px-6 py-3 font-semibold shadow-lg transition transform hover:scale-105"
             >
-              Upload Your First Image
+              ➕ Upload Image
+            </button>
+            <button
+              onClick={fetchImages}
+              className="card px-6 py-3 font-semibold shadow-lg transition"
+            >
+              🔄 Refresh
             </button>
           </div>
-        ) : (
-          <>
-            <div className="mb-4 text-gray-600">
-              Showing {images.length} image{images.length !== 1 ? 's' : ''}
-            </div>
-            <ImageGrid
-              images={images}
-              onImageClick={setSelectedImage}
-              onImageDelete={(id) => {
-                setImages(images.filter(img => img._id !== id));
-                fetchImages(); // Refresh to get updated data
+
+          {/* Upload Form */}
+          {showUploadForm && (
+            <UploadForm
+              onSuccess={() => {
+                setShowUploadForm(false);
+                fetchImages();
               }}
-              onImageUpdate={(id, updatedData) => {
-                setImages(images.map(img => (img._id === id ? { ...img, ...updatedData } : img)));
-                fetchImages(); // Refresh to get updated data
+              onClose={() => setShowUploadForm(false)}
+            />
+          )}
+
+          {/* Images Grid */}
+          {loading ? (
+            <div className="flex flex-wrap gap-6 justify-center items-start py-12">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="skeleton w-72 h-96 mb-4" />
+              ))}
+            </div>
+          ) : images.length === 0 ? (
+            <div className="text-center py-12 card">
+              <div className="text-6xl mb-4">📷</div>
+              <p className="text-xl text-gray-300 mb-2">No images uploaded yet</p>
+              <p className="text-gray-400 mb-6">Click "Upload Image" to get started</p>
+              <button
+                onClick={() => setShowUploadForm(true)}
+                className="gradient-btn px-6 py-3 font-semibold"
+              >
+                Upload Your First Image
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="mb-4 text-gray-400">
+                Showing {images.length} image{images.length !== 1 ? 's' : ''}
+              </div>
+              <ImageGrid
+                images={images}
+                onImageClick={setSelectedImage}
+                onImageDelete={(id) => {
+                  setImages(images.filter(img => img._id !== id));
+                  fetchImages(); // Refresh to get updated data
+                }}
+                onImageUpdate={(id, updatedData) => {
+                  setImages(images.map(img => (img._id === id ? { ...img, ...updatedData } : img)));
+                  fetchImages(); // Refresh to get updated data
+                }}
+              />
+            </>
+          )}
+
+          {/* Image Modal */}
+          {selectedImage && (
+            <ImageModal
+              image={selectedImage}
+              onClose={() => setSelectedImage(null)}
+              onUpdate={(updatedImage) => {
+                setImages(images.map(img => (img._id === updatedImage._id ? updatedImage : img)));
+                setSelectedImage(null);
+              }}
+              onDelete={(id) => {
+                setImages(images.filter(img => img._id !== id));
+                setSelectedImage(null);
               }}
             />
-          </>
-        )}
-
-        {/* Image Modal */}
-        {selectedImage && (
-          <ImageModal
-            image={selectedImage}
-            onClose={() => setSelectedImage(null)}
-            onUpdate={(updatedImage) => {
-              setImages(images.map(img => (img._id === updatedImage._id ? updatedImage : img)));
-              setSelectedImage(null);
-            }}
-            onDelete={(id) => {
-              setImages(images.filter(img => img._id !== id));
-              setSelectedImage(null);
-            }}
-          />
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

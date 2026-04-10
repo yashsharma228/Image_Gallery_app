@@ -5,8 +5,8 @@ import CommentSection from './CommentSection';
 const ImageModal = ({ image, onClose, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    title: image.title,
-    description: image.description || '',
+    title: '',
+    description: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -65,23 +65,23 @@ const ImageModal = ({ image, onClose, onUpdate, onDelete }) => {
           {!isEditing && (
             <div className="grid grid-cols-2 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
               <div>
-                <p className="text-xs text-gray-500">Upload Date</p>
-                <p className="font-semibold">{new Date(image.uploadedDate).toLocaleString()}</p>
+                <p className="text-xs text-black">Upload Date</p>
+                <p className="font-semibold text-black">{new Date(image.uploadedDate).toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500">Like Count</p>
-                <p className="font-semibold">❤️ {image.likeCount || 0}</p>
+                <p className="text-xs text-black">Like Count</p>
+                <p className="font-semibold  text-black">❤️ {image.likeCount || 0}</p>
               </div>
               {image.uploadedBy?.name && (
                 <div>
-                  <p className="text-xs text-gray-500">Uploaded By</p>
-                  <p className="font-semibold">{image.uploadedBy.name}</p>
+                  <p className="text-xs text-black">Uploaded By</p>
+                  <p className="font-semibold  text-black">{image.uploadedBy.name}</p>
                 </div>
               )}
               {image.uploadedBy?.email && (
                 <div>
-                  <p className="text-xs text-gray-500">Email</p>
-                  <p className="font-semibold text-sm">{image.uploadedBy.email}</p>
+                  <p className="text-xs text-black">Email</p>
+                  <p className="font-semibold text-sm  text-black">{image.uploadedBy.email}</p>
                 </div>
               )}
             </div>
@@ -98,22 +98,24 @@ const ImageModal = ({ image, onClose, onUpdate, onDelete }) => {
           {isEditing ? (
             <form onSubmit={handleUpdate}>
               <div className="mb-4">
-                <label className="block text-gray-700 font-semibold mb-2">Title</label>
+                <label className="block text-black font-semibold mb-2">Title</label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-4 py-2 border border-black rounded-lg placeholder-black text-black"
+                  placeholder="Title"
                   required
                 />
               </div>
 
               <div className="mb-4">
-                <label className="block text-gray-700 font-semibold mb-2">Description</label>
+                <label className="block text-black font-semibold mb-2">Description</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-4 py-2 border border-black rounded-lg placeholder-black text-black"
+                  placeholder="Description"
                   rows="3"
                 />
               </div>
@@ -137,10 +139,10 @@ const ImageModal = ({ image, onClose, onUpdate, onDelete }) => {
             </form>
           ) : (
             <>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">{image.title}</h3>
-              <p className="text-gray-600 mb-4">{image.description}</p>
+              <h3 className="text-2xl font-bold text-black mb-2">{image.title}</h3>
+              <p className="text-black mb-4">{image.description}</p>
               
-              <div className="text-sm text-gray-500 space-y-1 mb-4">
+              <div className="text-sm text-black space-y-1 mb-4">
                 <p>Uploaded: {new Date(image.uploadedDate).toLocaleDateString()}</p>
                 <p>By: {image.uploadedBy?.name || 'Unknown'}</p>
               </div>

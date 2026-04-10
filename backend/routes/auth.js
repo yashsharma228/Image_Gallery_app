@@ -246,14 +246,13 @@ router.post('/user/login', async (req, res) => {
   }
 });
 
-// Test endpoint to get all users (for debugging)
-router.get('/user/test', async (req, res) => {
+
+// Production-safe endpoint to get all users (admin only)
+router.get('/users', adminAuth, async (req, res) => {
   try {
     const users = await User.find({});
-    console.log('📊 Total users in MongoDB:', users.length);
     res.json({ count: users.length, users });
   } catch (error) {
-    console.error('Error fetching users:', error);
     res.status(500).json({ message: error.message });
   }
 });

@@ -27,11 +27,11 @@ export default function LoginPage() {
     <>
       <Header user={user} onLogout={logout} />
 
-      <main className="bg-gradient-to-b from-blue-50 to-purple-50 min-h-screen flex items-center justify-center py-12 px-4">
+      <main className="flex-1 flex items-center justify-center py-12 px-4 bg-gradient-to-b from-blue-50 to-purple-50">
         <div className="max-w-md w-full">
           <div className="bg-white rounded-lg shadow-xl p-8">
             <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
-              🖼️ Welcome to Image Gallery
+              <span className="font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">🖼️ Welcome to Framely</span>
             </h1>
             <p className="text-center text-gray-600 mb-8">
               Sign in with your Google account to like images and create your personal collection.

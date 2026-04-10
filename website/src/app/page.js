@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import { imageAPI } from '@/lib/api';
 import Header from '@/components/Header';
-import ImageCard from '@/components/ImageCard';
+import ImageGrid from '@/components/ImageGrid';
 import Loader from '@/components/Loader';
 import GoogleLoginButton from '@/components/GoogleLoginButton';
 import { useAuth } from '@/hooks/useAuth';
+
 
 export default function Home() {
   const { user, loading: authLoading, logout } = useAuth();
@@ -14,9 +15,11 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState('newest');
   const [fetchError, setFetchError] = useState(null);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetchImages();
+    // eslint-disable-next-line
   }, [sort, user?.id]);
 
   const fetchImages = async () => {
@@ -24,10 +27,8 @@ export default function Home() {
     setFetchError(null);
     try {
       const response = await imageAPI.getAll({ sort, userId: user?.id });
-      const data = Array.isArray(response.data) ? response.data : [];
-      setImages(data);
+      setImages(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
-      console.error('Error fetching images:', error);
       setImages([]);
       setFetchError(error.response?.data?.message || error.message || 'Failed to load images. Check if the backend is running.');
     } finally {
@@ -35,20 +36,26 @@ export default function Home() {
     }
   };
 
-  // Show loader only for initial auth check, not for images
+  // Filter images by search
+  const filteredImages = images.filter(img =>
+    img.title?.toLowerCase().includes(search.toLowerCase()) ||
+    img.description?.toLowerCase().includes(search.toLowerCase()) ||
+    img.uploadedBy?.name?.toLowerCase().includes(search.toLowerCase())
+  );
+
   if (authLoading) {
     return <Loader />;
   }
 
   return (
     <>
-      <Header user={user} onLogout={logout} />
-      <main className="bg-gray-50 min-h-screen py-8">
+      <Header user={user} onLogout={logout} search={search} setSearch={setSearch} />
+      <main className="flex-1 py-8">
         <div className="max-w-7xl mx-auto px-4">
           {/* Login Prompt - Show prominently at top if not logged in */}
           {!user && (
             <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-lg mb-8 shadow-lg">
-              <h2 className="text-3xl font-bold mb-4 text-center">Welcome to Image Gallery! 🖼️</h2>
+              <h2 className="text-3xl font-extrabold mb-4 text-center bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">Welcome to Framely! 🖼️</h2>
               <p className="text-center mb-6 text-lg">
                 Sign in with Google to like images and view your personal collection.
               </p>
@@ -60,7 +67,7 @@ export default function Home() {
 
           {/* Sorting Controls */}
           <div className="mb-8 flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-gray-800">Image Gallery</h1>
+            {/* Framely heading removed as requested */}
             {images.length > 0 && (
               <select
                 value={sort}
@@ -88,32 +95,14 @@ export default function Home() {
             </div>
           )}
 
-          {/* Images Grid */}
           {loading ? (
-            <div className="text-center py-12">
-              <Loader />
-            </div>
-          ) : images.length === 0 && !fetchError ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No images available yet.</p>
-              {!user && (
-                <p className="text-gray-400 text-sm mt-2">Sign in to upload and manage images (admin only).</p>
-              )}
-            </div>
-          ) : images.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {images.map((image) => (
-                <ImageCard
-                  key={image._id}
-                  image={image}
-                  userId={user?.id}
-                  onLikeChange={fetchImages}
-                />
-              ))}
-            </div>
-          ) : null}
+            <Loader />
+          ) : (
+            <ImageGrid images={filteredImages} userId={user?.id} onLikeChange={fetchImages} />
+          )}
         </div>
       </main>
     </>
   );
 }
+    

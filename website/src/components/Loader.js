@@ -3,12 +3,12 @@
 import React from 'react';
 
 const Loader = () => {
+  // Skeleton loader for gallery cards
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-        <p className="mt-4 text-gray-600">Loading images...</p>
-      </div>
+    <div className="flex flex-wrap gap-6 justify-center items-start min-h-screen py-16 bg-slate-950">
+      {[...Array(8)].map((_, i) => (
+        <div key={i} className="skeleton w-72 h-96 mb-4" />
+      ))}
     </div>
   );
 };

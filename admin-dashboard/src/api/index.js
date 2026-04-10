@@ -7,6 +7,11 @@ const api = axios.create({
   withCredentials: true // Send cookies with every request
 });
 
+// User endpoints (admin only)
+export const usersAPI = {
+  getAll: () => api.get('/auth/users'),
+};
+
 // Handle token expiration / auth failure
 api.interceptors.response.use(
   (response) => response,
