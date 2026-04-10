@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import CommentSection from './CommentSection';
 import { imagesAPI } from '../api';
 
-const ImageGrid = ({ images, onImageClick, onImageDelete, onImageUpdate }) => {
+const ImageGrid = ({ images, onImageClick, onImageDelete, onImageUpdate, user }) => {
   const [openCommentId, setOpenCommentId] = useState(null);
 
   const handleDelete = async (id) => {
@@ -49,8 +49,8 @@ const ImageGrid = ({ images, onImageClick, onImageDelete, onImageUpdate }) => {
               <div className="mb-2 text-xs text-black">
                 <span className="font-semibold">Liked by:</span>
                 <ul className="list-disc list-inside">
-                  {image.likedByUsers.map((user) => (
-                    <li key={user._id}>{user.name} ({user.email})</li>
+                  {image.likedByUsers.map((likedUser) => (
+                    <li key={likedUser._id}>{likedUser.name} ({likedUser.email})</li>
                   ))}
                 </ul>
               </div>
@@ -75,6 +75,8 @@ const ImageGrid = ({ images, onImageClick, onImageDelete, onImageUpdate }) => {
                     setOpenCommentId(null);
                   }
                 }}
+                user={user}
+                isAdmin={!!user && user.role === 'admin'}
               />
               <button
                 onClick={(e) => {

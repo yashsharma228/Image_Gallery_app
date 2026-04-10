@@ -10,6 +10,7 @@ const Dashboard = () => {
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
+  const [showUsersTable, setShowUsersTable] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [admin, setAdmin] = useState(null);
   const [showAdminProfile, setShowAdminProfile] = useState(false);
@@ -83,6 +84,23 @@ const Dashboard = () => {
                 >
                   Admin Profile
                 </button>
+                      {/* Admin Profile Modal */}
+                      {showAdminProfile && admin && (
+                        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6 relative border-2 border-black">
+                            <button
+                              className="absolute top-2 right-2 text-black hover:text-gray-700 text-2xl font-bold"
+                              onClick={() => setShowAdminProfile(false)}
+                              title="Close"
+                            >
+                              &times;
+                            </button>
+                            <h2 className="text-xl font-bold mb-4 text-black">Admin Profile</h2>
+                            <div className="mb-2 text-black"><span className="font-semibold">Name:</span> <span>{admin.name}</span></div>
+                            <div className="mb-2 text-black"><span className="font-semibold">Email:</span> <span>{admin.email}</span></div>
+                          </div>
+                        </div>
+                      )}
                 <button
                   onClick={handleLogout}
                   className="gradient-btn px-4 py-2 font-semibold"
@@ -105,24 +123,57 @@ const Dashboard = () => {
               <span className="text-2xl font-bold text-black">{images.reduce((sum, img) => sum + (img.likeCount || 0), 0)}</span>
               <span className="text-black">Total Likes</span>
             </div>
-            <div className="p-6 flex flex-col items-center text-center bg-white border border-gray-200 rounded-2xl shadow min-h-[120px]">
+            <div
+              className="p-6 flex flex-col items-center text-center bg-white border border-gray-200 rounded-2xl shadow min-h-[120px] cursor-pointer hover:bg-gray-100 transition"
+              title="Click to view all users"
+              onClick={() => setShowUsersTable(true)}
+            >
               <span className="text-4xl mb-2">👤</span>
               <span className="text-2xl font-bold text-black">
                 {usersLoading ? '...' : users.length}
               </span>
               <span className="text-black">Total Users</span>
-              {/* Show user details in a scrollable area if users exist */}
-              {users.length > 0 && (
-                <div className="mt-2 max-h-32 overflow-y-auto w-full text-xs text-left">
-                  {users.map(u => (
-                    <div key={u._id} className="border-b border-gray-100 py-1">
-                      <span className="font-semibold">{u.name || u.email}</span>
-                      <span className="ml-2 text-gray-400">{u.email}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <span className="text-xs text-blue-500 mt-2">Click to view all users</span>
             </div>
+                {/* Users Table Modal */}
+                {showUsersTable && (
+                  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full p-6 relative">
+                      <button
+                        className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl font-bold"
+                        onClick={() => setShowUsersTable(false)}
+                        title="Close"
+                      >
+                        &times;
+                      </button>
+                      <h2 className="text-xl font-bold mb-4 text-gray-800">All Users</h2>
+                      {usersLoading ? (
+                        <div className="text-center py-8">Loading users...</div>
+                      ) : users.length === 0 ? (
+                        <div className="text-center py-8 text-gray-400">No users found.</div>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full border border-black text-black">
+                            <thead>
+                              <tr className="bg-gray-100 text-black">
+                                <th className="py-2 px-4 border border-black text-left">Name</th>
+                                <th className="py-2 px-4 border border-black text-left">Email</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {users.map(u => (
+                                <tr key={u._id} className="hover:bg-gray-50 text-black">
+                                  <td className="py-2 px-4 border border-black">{u.name || '-'}</td>
+                                  <td className="py-2 px-4 border border-black">{u.email}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
           </div>
 
           {/* Action Buttons */}
@@ -189,29 +240,15 @@ const Dashboard = () => {
                 }}
               />
             </>
-          )}
 
-          {/* Image Modal */}
-          {selectedImage && (
-            <ImageModal
-              image={selectedImage}
-              onClose={() => setSelectedImage(null)}
-              onUpdate={(updatedImage) => {
-                setImages(images.map(img => (img._id === updatedImage._id ? updatedImage : img)));
-                setSelectedImage(null);
-              }}
-              onDelete={(id) => {
-                setImages(images.filter(img => img._id !== id));
-                setSelectedImage(null);
-              }}
-            />
           )}
-        </div>
-      </div>
-    </div>
+        </div> {/* End main content wrapper */}
+      </div> {/* End flex-1 wrapper */}
+    </div> /* End min-h-screen wrapper */
   );
 };
 
+// UploadForm component
 const UploadForm = ({ onSuccess, onClose }) => {
   const [formData, setFormData] = useState({ title: '', description: '', image: null });
   const [error, setError] = useState('');
@@ -268,76 +305,66 @@ const UploadForm = ({ onSuccess, onClose }) => {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">📤 Upload New Image</h2>
           <button
+            className="text-gray-400 hover:text-gray-700 text-2xl font-bold"
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+            title="Close"
           >
-            ×
+            &times;
           </button>
         </div>
-        
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
-
+        {error && <div className="text-red-500 mb-4">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 font-semibold mb-2">Title</label>
             <input
               type="text"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-black"
+              placeholder="Enter title"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-              required
+              onChange={e => setFormData({ ...formData, title: e.target.value })}
+              style={{ color: 'black' }}
             />
           </div>
-
           <div className="mb-4">
             <label className="block text-gray-700 font-semibold mb-2">Description</label>
             <textarea
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-black"
+              placeholder="Enter description"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-              rows="3"
+              onChange={e => setFormData({ ...formData, description: e.target.value })}
+              style={{ color: 'black' }}
             />
           </div>
-
-          <div className="mb-4">
-            <label className="block text-gray-700 font-semibold mb-2">Image</label>
-            {preview && (
-              <div className="mb-3">
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="w-full h-48 object-cover rounded-lg border-2 border-gray-300"
-                />
-              </div>
-            )}
+          <div className="mb-6">
+            <label className="block text-gray-700 font-semibold mb-2">Image File</label>
             <input
               type="file"
               accept="image/*"
+              className="w-full text-black file:placeholder-black"
               onChange={handleImageChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg cursor-pointer"
-              required
+              style={{ color: 'black' }}
             />
-            <p className="text-xs text-gray-500 mt-1">Supported formats: JPG, PNG, GIF, WebP</p>
+            {!formData.image && (
+              <div className="mt-1 text-sm text-black">No file chosen</div>
+            )}
+            {preview && (
+              <img src={preview} alt="Preview" className="mt-2 max-h-40 rounded border border-gray-200" />
+            )}
           </div>
-
-          <div className="flex gap-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold"
-            >
-              {loading ? 'Uploading...' : 'Upload'}
-            </button>
+          <div className="flex justify-end gap-4">
             <button
               type="button"
+              className="px-4 py-2 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300"
               onClick={onClose}
-              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold"
             >
               Cancel
+            </button>
+            <button
+              type="submit"
+              className="gradient-btn px-6 py-2 font-semibold text-white shadow-lg"
+              disabled={loading}
+            >
+              {loading ? 'Uploading...' : 'Upload'}
             </button>
           </div>
         </form>

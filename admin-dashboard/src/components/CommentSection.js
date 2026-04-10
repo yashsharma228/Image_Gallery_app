@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-export default function CommentSection({ imageId, showModal, setShowModal, user }) {
+export default function CommentSection({ imageId, showModal, setShowModal, user, isAdmin }) {
   const [comments, setComments] = useState([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -74,19 +74,21 @@ export default function CommentSection({ imageId, showModal, setShowModal, user 
                 ))
               )}
             </div>
-            <form onSubmit={handleSubmit} className="flex gap-2 mt-auto">
-              <input
-                type="text"
-                value={text}
-                onChange={e => setText(e.target.value)}
-                className="flex-1 border rounded-full px-3 py-2"
-                placeholder="Type a comment..."
-                disabled={!user || loading}
-              />
-              <button type="submit" disabled={!user || loading || !text.trim()} className="bg-blue-500 text-white px-4 py-2 rounded-full font-bold">
-                Send
-              </button>
-            </form>
+            {(!isAdmin && user) && (
+              <form onSubmit={handleSubmit} className="flex gap-2 mt-auto">
+                <input
+                  type="text"
+                  value={text}
+                  onChange={e => setText(e.target.value)}
+                  className="flex-1 border rounded-full px-3 py-2"
+                  placeholder="Type a comment..."
+                  disabled={!user || loading}
+                />
+                <button type="submit" disabled={!user || loading || !text.trim()} className="bg-blue-500 text-white px-4 py-2 rounded-full font-bold">
+                  Send
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}

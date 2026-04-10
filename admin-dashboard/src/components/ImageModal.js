@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { imagesAPI } from '../api';
 import CommentSection from './CommentSection';
 
-const ImageModal = ({ image, onClose, onUpdate, onDelete }) => {
+const ImageModal = ({ image, onClose, onUpdate, onDelete, user }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -93,7 +93,7 @@ const ImageModal = ({ image, onClose, onUpdate, onDelete }) => {
             </div>
           )}
 
-          <CommentSection imageId={image._id} />
+          <CommentSection imageId={image._id} user={user} isAdmin={!!user && user.role === 'admin'} />
 
           {isEditing ? (
             <form onSubmit={handleUpdate}>
