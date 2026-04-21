@@ -1,136 +1,71 @@
-# Image Gallery Web Application
 
-A full-stack image gallery platform with admin dashboard and public website built with React, Next.js, Express.js, MongoDB, and Cloudinary.
+# Image Gallery App
 
-## Project Structure
+A full-stack image gallery platform with:
+- **Admin Dashboard** (React.js)
+- **Public Website** (Next.js)
+- **Backend API** (Express.js)
 
-```
-Image Gallery App/
-├── backend/                 # Express.js API
-├── admin-dashboard/         # React.js Admin Portal
-└── website/                 # Next.js Public Website
-```
-
-## Features
+## 🚀 Features
 
 ### Admin Dashboard (React.js)
-- **Authentication**: Email & password login with JWT tokens
-- **Image Management**: Upload, edit, and delete images
-- **Image Metadata**: Manage titles and descriptions
-- **Dashboard**: View all uploaded images with management tools
+- Email & Password login with JWT
+- Password hashing using bcrypt
+- Protected routes
+- Image upload to Cloudinary with compression
+- View, edit, and delete images
+- Image management interface
 
 ### Public Website (Next.js)
-- **Image Feed**: Browse all images with sorting options
-- **Google Authentication**: Firebase-based Google login
-- **Like/Unlike**: Interact with images (authenticated users only)
-- **Personal Collection**: View only liked images
-- **Sorting**: Newest first, oldest first, or most popular
+- Google Login using Firebase Authentication
+- Image feed with sorting (Newest, Oldest, Most Popular)
+- Like/Unlike images (authenticated users only)
+- Liked images page
+- Responsive design with Tailwind CSS
 
-### Backend (Express.js)
-- **REST APIs**: Fully functional REST endpoints
-- **Image Storage**: Cloudinary integration for image hosting
-- **Database**: MongoDB for data persistence
-- **Security**: JWT authentication, bcrypt password hashing
-- **Validation**: Input validation with express-validator
-- **CORS**: Configured for frontend applications
+### Backend API (Express.js)
+- Admin login API (email/password with JWT)
+- User login API (Google Firebase token verification)
+- JWT middleware for protected routes
+- Image upload/edit/delete APIs (Admin only)
+- Get images API with sorting
+- Like/Unlike image APIs
+- MongoDB database integration
+- CORS configuration
 
-## Tech Stack
+### Cloudinary Integration
+- Image upload with automatic compression
+- Quality & format optimization
+- Dimension limiting (max 1920x1080)
+- Image deletion from Cloudinary
 
-### Frontend
-- **Admin Dashboard**: React.js 18, Tailwind CSS, Axios
-- **Public Website**: Next.js 14 (App Router), Tailwind CSS, Firebase Auth
+### Database Schema
+- Admin, User, Image, Like models
 
-### Backend
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Database**: MongoDB
-- **Image Storage**: Cloudinary
-- **Authentication**: JWT, bcryptjs
-- **Validation**: express-validator
+## 🛠️ Configuration
 
-## Installation & Setup
-
-### Prerequisites
-- Node.js (v14 or higher)
-- MongoDB (local or Atlas connection string)
-- Cloudinary account
-- Firebase project
-- Git
-
-### Backend Setup
-
-1. Navigate to the backend directory:
-```bash
-cd backend
+### Backend (.env)
 ```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Create a `.env` file and configure:
-```bash
-MONGODB_URI=mongodb://localhost:27017/image-gallery
-JWT_SECRET=your_secure_secret_key
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_super_secret_jwt_key
 CLOUDINARY_NAME=your_cloudinary_name
 CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 FIREBASE_PROJECT_ID=your_firebase_project_id
 FIREBASE_PRIVATE_KEY=your_firebase_private_key
 FIREBASE_CLIENT_EMAIL=your_firebase_client_email
-ADMIN_DASHBOARD_URL=http://localhost:3000
-WEBSITE_URL=http://localhost:3001
 PORT=5000
-NODE_ENV=development
+NODE_ENV=production
 ```
 
-4. Start the backend server:
-```bash
-npm run dev
+### Admin Dashboard (.env.local)
+```
+REACT_APP_API_BASE_URL=https://image-gallery-app-x1jt.onrender.com/api
 ```
 
-The API will be available at `http://localhost:5000/api`
-
-### Admin Dashboard Setup
-
-1. Navigate to the admin-dashboard directory:
-```bash
-cd admin-dashboard
+### Website (.env.local)
 ```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Create a `.env.local` file:
-```bash
-REACT_APP_API_BASE_URL=http://localhost:5000/api
-```
-
-4. Start the development server:
-```bash
-npm start
-```
-
-The dashboard will be available at `http://localhost:3000`
-
-### Public Website Setup
-
-1. Navigate to the website directory:
-```bash
-cd website
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Create a `.env.local` file:
-```bash
-NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api
+NEXT_PUBLIC_API_BASE_URL=https://image-gallery-app-x1jt.onrender.com/api
 NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_firebase_project_id
@@ -139,205 +74,121 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
 ```
 
-4. Start the development server:
+## ⚡ Getting Started
+
+### 1. Start Backend
 ```bash
+cd backend
+npm install
+npm start
+```
+Backend runs on: http://localhost:5000
+
+### 2. Start Admin Dashboard
+```bash
+cd admin-dashboard
+npm install
+npm start
+```
+Admin Dashboard runs on: http://localhost:3000
+
+### 3. Start Website
+```bash
+cd website
+npm install
 npm run dev
 ```
+Website runs on: http://localhost:3001
 
-The website will be available at `http://localhost:3001`
+## 📦 Deployment
 
-## API Endpoints
+### Backend (Render/AWS/DigitalOcean)
+- Set environment variables
+- Deploy Express.js server
+- Configure CORS for frontend domains
 
-### Authentication
-- `POST /api/auth/admin/register` - Register admin account
-- `POST /api/auth/admin/login` - Admin login
-- `POST /api/auth/user/login` - User login with Firebase token
+### Admin Dashboard (Vercel/Netlify)
+- Set `REACT_APP_API_BASE_URL` to deployed backend URL
+- Build and deploy
 
-### Images
-- `GET /api/images` - Get all images (supports sorting)
-  - Query params: `sort` (newest, oldest, popular), `userId` (for like status)
-- `GET /api/images/:id` - Get single image
-- `POST /api/images/upload` - Upload image (admin only)
-- `PUT /api/images/:id` - Edit image metadata (admin only)
-- `DELETE /api/images/:id` - Delete image (admin only)
+### Website (Vercel)
+- Set `NEXT_PUBLIC_API_BASE_URL` to deployed backend URL
+- Configure Firebase for production domain
+- Deploy
 
-### Likes
-- `POST /api/likes/:imageId/like` - Like an image (authenticated users)
-- `DELETE /api/likes/:imageId/like` - Unlike an image (authenticated users)
-- `GET /api/likes` - Get user's liked images (authenticated users)
+## 🔄 Complete Flow
 
-## Database Schema
+1. **Admin Uploads Image**
+  - Admin logs in at `/admin`
+  - Uploads image (Cloudinary)
+  - Image metadata saved to MongoDB
+  - Image appears in admin dashboard
 
-### Admin
-```javascript
-{
-  email: String (unique, required),
-  password: String (hashed, required),
-  name: String,
-  createdAt: Date
-}
-```
+2. **Image Appears in User Website**
+  - User visits `/`
+  - Image appears in feed
+  - User can view, sort, and like images
 
-### User
-```javascript
-{
-  firebaseUid: String (unique, required),
-  email: String (unique, required),
-  name: String,
-  profilePicture: String,
-  createdAt: Date
-}
-```
+3. **User Likes Image**
+  - User logs in with Google
+  - Likes image
+  - Like count updates
+  - Image appears in "My Likes" page
 
-### Image
-```javascript
-{
-  url: String (required),
-  publicId: String (Cloudinary ID, required),
-  title: String (required),
-  description: String,
-  uploadedBy: ObjectId (ref: Admin, required),
-  uploadedDate: Date,
-  likeCount: Number
-}
-```
+4. **User Views Liked Images**
+  - User clicks "❤️ My Likes"
+  - Sees all liked images
 
-### Like
-```javascript
-{
-  user: ObjectId (ref: User, required),
-  image: ObjectId (ref: Image, required),
-  createdAt: Date
-}
-```
+## 🎯 Tech Stack
 
-## Deployment
+- React.js, Next.js, Express.js, MongoDB, Cloudinary, Firebase
 
-### Backend Deployment
+## 🛡️ Security
 
-#### Option 1: Render
-1. Push code to GitHub
-2. Connect to Render
-3. Set environment variables in Render dashboard
-4. Deploy
+- Passwords hashed with bcrypt
+- JWT authentication
+- Firebase token validation
+- CORS for allowed domains
+- Environment variables for secrets
+- Protected routes
+- Input validation
 
-#### Option 2: AWS EC2 / DigitalOcean
-1. Set up server instance
-2. Install Node.js and MongoDB
-3. Clone repository
-4. Configure environment variables
-5. Use PM2 for process management:
-```bash
-npm install -g pm2
-pm2 start server.js
-pm2 startup
-pm2 save
-```
+## 🧪 Testing
 
-### Admin Dashboard Deployment
+- Register/login as admin
+- Upload/edit/delete images
+- Google login as user
+- Like/unlike images
+- View liked images
+- Test all API endpoints
 
-#### Netlify
-1. Connect GitHub repository
-2. Build command: `npm run build`
-3. Publish directory: `build`
-4. Set environment variables
+## 📝 Assignment Requirements Met
 
-#### Vercel
-1. Import project to Vercel
-2. Set environment variables
-3. Deploy
+✅ Tech Stack: React.js, Next.js, Express.js, MongoDB, Cloudinary, Firebase
+✅ Authentication: Admin (Email/Password + JWT), Users (Google + Firebase)
+✅ Image Storage: Cloudinary with compression
+✅ Database: MongoDB with proper schemas
+✅ Security: JWT, bcrypt, Firebase token validation
+✅ Features: Upload, Edit, Delete, Like, Sort
+✅ Deployment Ready: Environment variables configured
 
-### Public Website Deployment
+## 🧩 Future Enhancements
 
-#### Vercel (Recommended)
-1. Push code to GitHub
-2. Import project to Vercel
-3. Set environment variables
-4. Deploy automatically on push
+- [ ] Pagination for image feed
+- [ ] Image search
+- [ ] User comments
+- [ ] Image categories/tags
+- [ ] User follow system
+- [ ] Admin analytics dashboard
+- [ ] Image ratings/reviews
+- [ ] Bulk upload
+- [ ] Sharing features
+- [ ] Notifications system
 
-## Security Considerations
+## 📋 License
 
-1. **Password Hashing**: All admin passwords are hashed using bcrypt
-2. **JWT Tokens**: Secure token-based authentication
-3. **Firebase Verification**: Backend validates Firebase ID tokens
-4. **CORS**: Only allowed domains can access the API
-5. **Environment Variables**: Sensitive data stored in environment variables
-6. **Protected Routes**: Admin routes require authentication
-7. **Input Validation**: All inputs validated using express-validator
+Open source for educational purposes.
 
-## Testing
-
-### Manual Testing Checklist
-
-1. **Admin Dashboard**
-   - [ ] Register new admin account
-   - [ ] Login with credentials
-   - [ ] Upload image with metadata
-   - [ ] Edit image details
-   - [ ] Delete image
-   - [ ] Verify images appear in feed
-
-2. **Public Website**
-   - [ ] View image feed
-   - [ ] Sort images (newest, oldest, popular)
-   - [ ] Login with Google
-   - [ ] Like/unlike images
-   - [ ] View liked images page
-   - [ ] Verify like count updates
-
-3. **Backend API**
-   - [ ] Test all endpoints with Postman/Thunder Client
-   - [ ] Verify JWT token generation
-   - [ ] Test image upload to Cloudinary
-   - [ ] Verify database operations
-   - [ ] Test error handling
-
-## Troubleshooting
-
-### MongoDB Connection Issues
-- Verify MongoDB is running
-- Check connection string in `.env`
-- Ensure network access is allowed (if using MongoDB Atlas)
-
-### Cloudinary Upload Fails
-- Verify API credentials
-- Check folder name configuration
-- Ensure sufficient API quota
-
-### Firebase Authentication Issues
-- Verify Firebase credentials
-- Check Firebase console configuration
-- Ensure allowed domains are configured
-
-### CORS Errors
-- Verify frontend URLs in backend `.env`
-- Check browser console for exact error
-- Ensure credentials: true is set if using cookies
-
-## Performance Optimization
-
-1. **Image Optimization**: Cloudinary provides automatic image optimization
-2. **Database Indexes**: Indexes on `uploadedDate` and `likeCount` for fast sorting
-3. **Lazy Loading**: Next.js image optimization
-4. **Pagination**: Can be added for large image collections
-
-## Future Enhancements
-
-- [ ] Implement pagination for image feed
-- [ ] Add image search functionality
-- [ ] Implement user comments on images
-- [ ] Add image categories/tags
-- [ ] Create user follow system
-- [ ] Add admin analytics dashboard
-- [ ] Implement image ratings/reviews
-- [ ] Add bulk upload functionality
-- [ ] Create sharing features
-- [ ] Add notifications system
-
-## License
-
-This project is open source and available for educational purposes.
-
-## Support
+## 🙋‍♂️ Support
 
 For issues and questions, please refer to the documentation or create an issue in the repository.
