@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '../api';
 
 export default function CommentSection({ imageId, showModal, setShowModal, user, isAdmin }) {
   const [comments, setComments] = useState([]);
@@ -9,7 +9,7 @@ export default function CommentSection({ imageId, showModal, setShowModal, user,
   // ✅ Define FIRST, use useCallback
   const fetchComments = useCallback(async () => {
     try {
-      const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/comments/${imageId}`);
+      const res = await api.get(`/comments/${imageId}`);
       setComments(res.data);
     } catch (err) {
       setComments([]);
@@ -27,8 +27,8 @@ export default function CommentSection({ imageId, showModal, setShowModal, user,
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.REACT_APP_API_BASE_URL}/comments/${imageId}`,
+      await api.post(
+        `/comments/${imageId}`,
         { text },
         token ? { headers: { Authorization: `Bearer ${token}` } } : {}
       );
@@ -57,21 +57,28 @@ export default function CommentSection({ imageId, showModal, setShowModal, user,
               {comments.length === 0 ? (
                 <p className="text-gray-400 text-center">No comments yet.</p>
               ) : (
-                comments.map(comment => (
-                  <div key={comment._id} className={`flex items-start gap-2 ${comment.user?.id === user?.id ? 'justify-end' : ''}`}> 
+                comments.map(comment => {
+                  const uid = user?._id || user?.id;
+                  const cuid = comment.user?._id || comment.user?.id;
+                  const mine = uid && cuid && String(uid) === String(cuid);
+                  return (
+                  <div key={comment._id} className={`flex items-start gap-2 ${mine ? 'justify-end' : ''}`}> 
                     <img
-                      src={comment.user?.avatar || '/default-avatar.png'}
-                      alt={comment.user?.name || 'User'}
+                      src={comment.user?.avatar || comment.user?.profilePicture || '/default-avatar.png'}
+                      alt={typeof comment.user?.name === 'string' ? comment.user.name : 'User'}
                       className="w-7 h-7 rounded-full border object-cover"
                     />
-                    <div className={`rounded-2xl px-3 py-2 shadow-sm ${comment.user?.id === user?.id ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-800'}`}
+                    <div className={`rounded-2xl px-3 py-2 shadow-sm ${mine ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-800'}`}
                       style={{ maxWidth: '70%' }}>
-                      <div className="text-xs font-semibold mb-1">{comment.user?.name || 'User'}</div>
-                      <div className="text-sm">{comment.text}</div>
+                      <div className="text-xs font-semibold mb-1">
+                        {typeof comment.user?.name === 'string' ? comment.user.name : 'User'}
+                      </div>
+                      <div className="text-sm">{typeof comment.text === 'string' ? comment.text : String(comment.text ?? '')}</div>
                       <div className="text-[10px] text-gray-400 mt-1">{new Date(comment.createdAt).toLocaleString()}</div>
                     </div>
                   </div>
-                ))
+                );
+                })
               )}
             </div>
             {(!isAdmin && user) && (

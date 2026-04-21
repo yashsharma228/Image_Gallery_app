@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { imagesAPI, authAPI, usersAPI } from '../api';
+
 import ImageGrid from '../components/ImageGrid';
 import ImageModal from '../components/ImageModal';
 
@@ -24,7 +25,7 @@ const Dashboard = () => {
       try {
         const session = await authAPI.checkSession();
         if (session && session.user && session.role === 'admin') {
-          setAdmin(session.user);
+          setAdmin({ ...session.user, role: session.role });
         }
       } catch (err) {
         setAdmin(null);
@@ -52,9 +53,12 @@ const Dashboard = () => {
     setLoading(true);
     try {
       const response = await imagesAPI.getAll();
-      setImages(response.data);
+      const raw = response.data;
+      const list = Array.isArray(raw) ? raw : Array.isArray(raw?.images) ? raw.images : [];
+      setImages(list);
     } catch (error) {
       console.error('Error fetching images:', error);
+      setImages([]);
     } finally {
       setLoading(false);
     }
@@ -65,9 +69,9 @@ const Dashboard = () => {
     navigate('/login');
   };
 
+
     return (
-      <div className="min-h-screen bg-gray-50 flex">
-        {/* Sidebar removed as per request */}
+      <div className="min-h-screen flex" style={{ background: '#f8fafc' }}>
         <div className="flex-1 flex flex-col min-h-screen">
           {/* Header */}
           <header className="w-full shadow-lg bg-white border-b border-gray-200">
@@ -130,7 +134,7 @@ const Dashboard = () => {
             >
               <span className="text-4xl mb-2">👤</span>
               <span className="text-2xl font-bold text-black">
-                {usersLoading ? '...' : users.length}
+                {usersLoading ? '...' : users.filter(u => u.email !== 'admin@hrtool.com').length}
               </span>
               <span className="text-black">Total Users</span>
               <span className="text-xs text-blue-500 mt-2">Click to view all users</span>
@@ -161,7 +165,7 @@ const Dashboard = () => {
                               </tr>
                             </thead>
                             <tbody>
-                              {users.map(u => (
+                              {users.filter(u => u.email !== 'admin@hrtool.com').map(u => (
                                 <tr key={u._id} className="hover:bg-gray-50 text-black">
                                   <td className="py-2 px-4 border border-black">{u.name || '-'}</td>
                                   <td className="py-2 px-4 border border-black">{u.email}</td>
@@ -229,6 +233,7 @@ const Dashboard = () => {
               </div>
               <ImageGrid
                 images={images}
+                user={admin}
                 onImageClick={setSelectedImage}
                 onImageDelete={(id) => {
                   setImages(images.filter(img => img._id !== id));
@@ -241,6 +246,25 @@ const Dashboard = () => {
               />
             </>
 
+          )}
+          {selectedImage && (
+            <ImageModal
+              image={selectedImage}
+              user={admin}
+              onClose={() => setSelectedImage(null)}
+              onUpdate={(updated) => {
+                setImages((prev) =>
+                  prev.map((img) => (img._id === updated._id ? { ...img, ...updated } : img))
+                );
+                setSelectedImage((prev) =>
+                  prev && prev._id === updated._id ? { ...prev, ...updated } : prev
+                );
+              }}
+              onDelete={(id) => {
+                setImages((prev) => prev.filter((img) => img._id !== id));
+                setSelectedImage(null);
+              }}
+            />
           )}
         </div> {/* End main content wrapper */}
       </div> {/* End flex-1 wrapper */}
@@ -292,7 +316,14 @@ const UploadForm = ({ onSuccess, onClose }) => {
       setPreview(null);
       onSuccess();
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Upload failed. Please try again.');
+      const data = err.response?.data;
+      const msg = data?.message;
+      const arr = data?.errors;
+      if (Array.isArray(arr) && arr.length) {
+        setError(arr.map((e) => e.msg || e.message || String(e)).join('. '));
+      } else {
+        setError(typeof msg === 'string' ? msg : msg != null ? String(msg) : err.message || 'Upload failed. Please try again.');
+      }
       console.error('Upload error:', err);
     } finally {
       setLoading(false);
@@ -354,14 +385,14 @@ const UploadForm = ({ onSuccess, onClose }) => {
           <div className="flex justify-end gap-4">
             <button
               type="button"
-              className="px-4 py-2 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300"
+              className="px-4 py-2 rounded bg-gray-200 text-black font-semibold hover:bg-gray-300"
               onClick={onClose}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="gradient-btn px-6 py-2 font-semibold text-white shadow-lg"
+              className="gradient-btn px-6 py-2 font-semibold text-black shadow-lg"
               disabled={loading}
             >
               {loading ? 'Uploading...' : 'Upload'}

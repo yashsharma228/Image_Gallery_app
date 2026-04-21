@@ -6,6 +6,7 @@ const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: '🏠' },
   { name: 'Photos', href: '/', icon: '🖼️' },
   { name: 'Albums', href: '/albums', icon: '📁' },
+  { name: 'My Likes', href: '/liked', icon: '❤️' },
   { name: 'Analytics', href: '/analytics', icon: '📊' },
   { name: 'Settings', href: '/settings', icon: '⚙️' },
 ];

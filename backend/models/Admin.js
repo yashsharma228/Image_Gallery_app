@@ -10,8 +10,13 @@ const adminSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    required: function() { return !this.firebaseUid; }, // Password only required if no Firebase UID
     minlength: 6
+  },
+  firebaseUid: {
+    type: String,
+    unique: true,
+    sparse: true // Allows multiple nulls for email/password admins
   },
   name: String,
   createdAt: {

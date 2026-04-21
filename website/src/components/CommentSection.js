@@ -1,20 +1,24 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
 
-export default function CommentSection({ imageId, user }) {
+import { useState, useEffect } from 'react';
+import { Send, User as UserIcon } from 'lucide-react';
+import api from '@/lib/api';
+
+export default function CommentSection({ imageId, user, admin, open = true, onCommentChange }) {
   const [comments, setComments] = useState([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [editText, setEditText] = useState('');
 
   useEffect(() => {
-    if (showModal) fetchComments();
-  }, [imageId, showModal]);
+    fetchComments();
+  }, [imageId]);
 
   const fetchComments = async () => {
     try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/comments/${imageId}`);
-      setComments(res.data);
+      const res = await api.get(`/comments/${imageId}`);
+      setComments(Array.isArray(res.data) ? res.data.reverse() : []); // Most recent last (chat style)
+      onCommentChange?.(Array.isArray(res.data) ? res.data.length : 0);
     } catch (err) {
       setComments([]);
     }
@@ -26,75 +30,62 @@ export default function CommentSection({ imageId, user }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/comments/${imageId}`,
+      await api.post(
+        `/comments/${imageId}`,
         { text },
         token ? { headers: { Authorization: `Bearer ${token}` } } : {}
       );
       setText('');
       fetchComments();
     } catch (err) {
-      // handle error
+      // Optionally show error
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="mt-2">
-      <button
-        className="text-blue-500 font-semibold hover:underline px-2 py-1 rounded"
-        onClick={() => setShowModal(true)}
-      >
-        💬 Comments
-      </button>
-
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-4 relative flex flex-col" style={{ maxHeight: '80vh' }}>
-            <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
-              onClick={() => setShowModal(false)}
-            >
-              ×
-            </button>
-            <h4 className="font-semibold mb-2 text-center">Comments</h4>
-            <div className="flex-1 overflow-y-auto space-y-3 mb-3" style={{ minHeight: '120px' }}>
-              {comments.length === 0 ? (
-                <p className="text-gray-400 text-center">No comments yet.</p>
-              ) : (
-                comments.map(comment => (
-                  <div key={comment._id} className={`flex items-start gap-2 ${comment.user?.id === user?.id ? 'justify-end' : ''}`}> 
-                    <img
-                      src={comment.user?.avatar || '/default-avatar.png'}
-                      alt={comment.user?.name || 'User'}
-                      className="w-7 h-7 rounded-full border object-cover"
-                    />
-                    <div className={`rounded-2xl px-3 py-2 shadow-sm ${comment.user?.id === user?.id ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-800'}`}
-                      style={{ maxWidth: '70%' }}>
-                      <div className="text-xs font-semibold mb-1">{comment.user?.name || 'User'}</div>
-                      <div className="text-sm">{comment.text}</div>
-                      <div className="text-[10px] text-gray-400 mt-1">{new Date(comment.createdAt).toLocaleString()}</div>
-                    </div>
-                  </div>
-                ))
-              )}
+    <div className="w-full flex flex-col h-96">
+      {/* Comments List - WhatsApp group chat style */}
+      <div className="flex-1 flex flex-col gap-2 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 mb-3">
+        {comments.length === 0 && (
+          <div className="text-center text-slate-400 my-auto">No comments yet.</div>
+        )}
+        {comments.map((c) => (
+          <div key={c._id} className="flex items-end gap-2 w-full">
+            <div className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-base">
+              {c.user?.name?.charAt(0)?.toUpperCase() || c.admin?.name?.charAt(0)?.toUpperCase() || <UserIcon size={16} />}
             </div>
-            <form onSubmit={handleSubmit} className="flex gap-2 mt-auto">
-              <input
-                type="text"
-                value={text}
-                onChange={e => setText(e.target.value)}
-                className="flex-1 border rounded-full px-3 py-2"
-                placeholder="Type a comment..."
-                disabled={!user || loading}
-              />
-              <button type="submit" disabled={!user || loading || !text.trim()} className="bg-blue-500 text-white px-4 py-2 rounded-full font-bold">
-                Send
-              </button>
-            </form>
+            <div className="flex flex-col items-start max-w-[80%]">
+              <span className="font-bold text-xs text-indigo-700 dark:text-indigo-300 mb-1">
+                {c.user?.name || c.admin?.name || 'User'}
+              </span>
+              <span className="rounded-2xl px-4 py-2 bg-white dark:bg-slate-900 shadow text-slate-800 dark:text-slate-100 text-base">
+                {c.text}
+              </span>
+            </div>
           </div>
-        </div>
+        ))}
+      </div>
+      {/* Add Comment */}
+      {(user || admin) && (
+        <form className="flex items-center gap-2 mt-2" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            value={text}
+            onChange={e => setText(e.target.value)}
+            className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Type a message..."
+            disabled={loading}
+          />
+          <button
+            type="submit"
+            className="p-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50"
+            disabled={loading || !text.trim()}
+          >
+            <Send size={18} />
+          </button>
+        </form>
       )}
     </div>
   );

@@ -26,6 +26,10 @@ const imageSchema = new mongoose.Schema({
   likeCount: {
     type: Number,
     default: 0
+  },
+  commentCount: {
+    type: Number,
+    default: 0
   }
 });
 

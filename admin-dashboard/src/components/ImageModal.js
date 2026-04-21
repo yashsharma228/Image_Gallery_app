@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { imagesAPI } from '../api';
 import CommentSection from './CommentSection';
 
@@ -11,6 +11,17 @@ const ImageModal = ({ image, onClose, onUpdate, onDelete, user }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (image) {
+      setFormData({
+        title: typeof image.title === 'string' ? image.title : '',
+        description: typeof image.description === 'string' ? image.description : '',
+      });
+      setIsEditing(false);
+      setError('');
+    }
+  }, [image]);
+
   const handleUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -18,7 +29,8 @@ const ImageModal = ({ image, onClose, onUpdate, onDelete, user }) => {
 
     try {
       const response = await imagesAPI.update(image._id, formData);
-      onUpdate(response.data.image);
+      const next = response.data?.image || response.data;
+      onUpdate(next);
       setIsEditing(false);
     } catch (err) {
       setError(err.response?.data?.message || 'Update failed');
@@ -87,13 +99,17 @@ const ImageModal = ({ image, onClose, onUpdate, onDelete, user }) => {
             </div>
           )}
 
-          {error && (
+          {error != null && error !== '' && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-              {error}
+              {typeof error === 'string' ? error : String(error)}
             </div>
           )}
 
-          <CommentSection imageId={image._id} user={user} isAdmin={!!user && user.role === 'admin'} />
+          <CommentSection
+            imageId={image._id}
+            user={user}
+            isAdmin={!!user && (user.role === 'admin' || user.role === 'superadmin')}
+          />
 
           {isEditing ? (
             <form onSubmit={handleUpdate}>
@@ -139,8 +155,12 @@ const ImageModal = ({ image, onClose, onUpdate, onDelete, user }) => {
             </form>
           ) : (
             <>
-              <h3 className="text-2xl font-bold text-black mb-2">{image.title}</h3>
-              <p className="text-black mb-4">{image.description}</p>
+              <h3 className="text-2xl font-bold text-black mb-2">
+                {typeof image.title === 'string' ? image.title : String(image.title ?? '')}
+              </h3>
+              <p className="text-black mb-4">
+                {typeof image.description === 'string' ? image.description : String(image.description ?? '')}
+              </p>
               
               <div className="text-sm text-black space-y-1 mb-4">
                 <p>Uploaded: {new Date(image.uploadedDate).toLocaleDateString()}</p>

@@ -43,6 +43,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/images', require('./routes/images'));
 app.use('/api/likes', require('./routes/likes'));
 app.use('/api/comments', require('./routes/comments'));
+app.use('/api/users', require('./routes/users'));
 
 // Health check endpoint
 app.get("/", (req, res) => {
@@ -52,18 +53,19 @@ app.get("/", (req, res) => {
   });
 });
 
-// Google Auth Route
-const admin = require("./firebaseAdmin");
-app.post("/api/auth/google", async (req, res) => {
-  const { token } = req.body;
+// Test DB connection endpoint
+app.get("/test-db", async (req, res) => {
   try {
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    const email = decodedToken.email;
-    const uid = decodedToken.uid;
-    // You can create user in MongoDB here
-    res.status(200).json({ message: "Login success", email });
-  } catch (error) {
-    res.status(401).json({ error: "Unauthorized" });
+    // Check MongoDB connection state
+    const state = mongoose.connection.readyState;
+    // 1 = connected, 2 = connecting
+    if (state === 1) {
+      res.json({ status: "success", message: "MongoDB is connected" });
+    } else {
+      res.status(500).json({ status: "error", message: "MongoDB is not connected", state });
+    }
+  } catch (err) {
+    res.status(500).json({ status: "error", message: err.message });
   }
 });
 

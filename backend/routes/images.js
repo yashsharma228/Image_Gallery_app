@@ -4,6 +4,7 @@ const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 const Image = require('../models/Image');
 const Like = require('../models/Like');
+const Comment = require('../models/Comment');
 const { adminAuth, userAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -101,33 +102,13 @@ router.get('/', async (req, res) => {
     if (title) {
       filter.title = { $regex: title, $options: 'i' };
     }
+
     if (description) {
       filter.description = { $regex: description, $options: 'i' };
     }
 
-    let images = await Image.find(filter)
-      .sort(sortObj)
-      .populate('uploadedBy', 'name email')
-      .lean();
-
-    // For each image, get users who liked it
-    const imageIds = images.map(img => img._id);
-    const likes = await Like.find({ image: { $in: imageIds } })
-      .populate('user', 'name email')
-      .lean();
-
-    // Map imageId to array of users who liked it
-    const likesMap = {};
-    likes.forEach(like => {
-      const imgId = like.image.toString();
-      if (!likesMap[imgId]) likesMap[imgId] = [];
-      likesMap[imgId].push(like.user);
-    });
-
-    images = images.map(image => ({
-      ...image,
-      likedByUsers: likesMap[image._id.toString()] || []
-    }));
+    // Fetch images from DB
+    let images = await Image.find(filter).sort(sortObj).populate('uploadedBy', 'name email').lean();
 
     // If user is authenticated, include their like status
     if (userId) {

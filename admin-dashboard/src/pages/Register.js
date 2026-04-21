@@ -8,6 +8,7 @@ const Register = () => {
     password: '',
     name: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -66,40 +67,62 @@ const Register = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-700 font-semibold mb-2">Name</label>
+            <label className="block text-black font-semibold mb-2">Name</label>
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              placeholder="Enter your name"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 placeholder-black text-black"
               required
             />
           </div>
 
           <div className="mb-4">
-            <label className="block text-gray-700 font-semibold mb-2">Email</label>
+            <label className="block text-black font-semibold mb-2">Email</label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              placeholder="Enter your email"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 placeholder-black text-black"
               required
             />
           </div>
 
           <div className="mb-6">
-            <label className="block text-gray-700 font-semibold mb-2">Password</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              required
-              minLength="6"
-            />
+            <label className="block text-black font-semibold mb-2">Password</label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter your password "
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 placeholder-black text-black pr-10"
+                required
+                minLength="6"
+              />
+              <span
+                className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
+                onClick={() => setShowPassword((prev) => !prev)}
+                tabIndex={0}
+                role="button"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-700">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M9.88 9.88A3 3 0 0012 15a3 3 0 002.12-5.12M15 12a3 3 0 11-6 0 3 3 0 016 0zm6.12 2.88A9.004 9.004 0 0012 5c-3.87 0-7.16 2.19-9 5.5a9.004 9.004 0 001.67 2.38m1.45 1.45A8.978 8.978 0 0012 19c3.87 0 7.16-2.19 9-5.5a8.96 8.96 0 00-2.07-2.88" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-700">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm6.12 2.88A9.004 9.004 0 0012 5c-3.87 0-7.16 2.19-9 5.5a9.004 9.004 0 001.67 2.38m1.45 1.45A8.978 8.978 0 0012 19c3.87 0 7.16-2.19 9-5.5a8.96 8.96 0 00-2.07-2.88" />
+                  </svg>
+                )}
+              </span>
+            </div>
           </div>
 
           <button

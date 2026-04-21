@@ -1,27 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import GoogleLoginButton from '@/components/GoogleLoginButton';
-import { authService } from '@/lib/authService';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function LoginPage() {
-  const { logout } = useAuth();
-  const [user, setUser] = useState(null);
+  const { user, logout, loading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        const storedUser = authService.getUser();
-        setUser(storedUser);
-      }
-    });
-
-    return unsubscribe;
-  }, []);
+    if (user && !loading) {
+      router.push('/');
+    }
+  }, [user, loading, router]);
 
   return (
     <>

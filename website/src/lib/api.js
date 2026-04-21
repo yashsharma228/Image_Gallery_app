@@ -37,28 +37,15 @@ export const imageAPI = {
     return api.get(url);
   },
   getById: (id) => api.get(`/images/${id}`),
-  likeImage: (imageId) => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    return api.post(
-      `/likes/${imageId}/like`,
-      {},
-      token ? { headers: { Authorization: `Bearer ${token}` } } : {}
-    );
-  },
-  unlikeImage: (imageId) => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    return api.delete(
-      `/likes/${imageId}/like`,
-      token ? { headers: { Authorization: `Bearer ${token}` } } : {}
-    );
-  },
-  getLikedImages: (sort = 'newest') => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    return api.get(
-      `/likes?sort=${sort}`,
-      token ? { headers: { Authorization: `Bearer ${token}` } } : {}
-    );
-  },
+  likeImage: (imageId) => api.post(`/likes/${imageId}`),
+  unlikeImage: (imageId) => api.delete(`/likes/${imageId}`),
+  getLikedImages: (sort = 'newest') => api.get(`/likes?sort=${sort}`),
+
+  // Comments
+  getComments: (imageId) => api.get(`/comments/${imageId}`),
+  addComment: (imageId, text) => api.post(`/comments/${imageId}`, { text }),
+  editComment: (commentId, text) => api.put(`/comments/${commentId}`, { text }),
+  deleteComment: (commentId) => api.delete(`/comments/${commentId}`),
 };
 
 export default api;

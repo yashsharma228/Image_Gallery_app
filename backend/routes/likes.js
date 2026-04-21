@@ -1,104 +1,95 @@
 const express = require('express');
-const Image = require('../models/Image');
 const Like = require('../models/Like');
+const Image = require('../models/Image');
 const userAuth = require('../middleware/userAuth');
 
 const router = express.Router();
 
-// Like an image (User only)
-router.post('/:imageId/like', userAuth, async (req, res) => {
+// Like an image
+router.post('/:imageId', userAuth, async (req, res) => {
   try {
     const { imageId } = req.params;
     const userId = req.userId;
-
-    // Check if image exists
-    const image = await Image.findById(imageId);
-    if (!image) {
-      return res.status(404).json({ message: 'Image not found' });
+    console.log(`[LIKE] User ${userId} liking image ${imageId}`);
+    // Prevent duplicate likes
+    const existing = await Like.findOne({ user: userId, image: imageId });
+    if (existing) {
+      console.log('[LIKE] Already liked');
+      return res.status(400).json({ message: 'Already liked' });
     }
-
-    // Check if already liked
-    const existingLike = await Like.findOne({ user: userId, image: imageId });
-    if (existingLike) {
-      return res.status(400).json({ message: 'Image already liked' });
-    }
-
-    // Create like
-    const like = new Like({
-      user: userId,
-      image: imageId
-    });
+    const like = new Like({ user: userId, image: imageId });
     await like.save();
-
-    // Update like count
-    image.likeCount += 1;
-    await image.save();
-
-    res.status(201).json({
-      message: 'Image liked successfully',
-      likeCount: image.likeCount
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    await Image.findByIdAndUpdate(imageId, { $inc: { likeCount: 1 } });
+    console.log('[LIKE] Like saved');
+    res.status(201).json({ message: 'Liked' });
+  } catch (err) {
+    console.error('[LIKE] Error:', err);
+    res.status(500).json({ message: err.message });
   }
 });
 
-// Unlike an image (User only)
-router.delete('/:imageId/like', userAuth, async (req, res) => {
+// Unlike an image
+router.delete('/:imageId', userAuth, async (req, res) => {
   try {
     const { imageId } = req.params;
     const userId = req.userId;
-
-    // Check if like exists
-    const like = await Like.findOne({ user: userId, image: imageId });
-    if (!like) {
-      return res.status(404).json({ message: 'Like not found' });
-    }
-
-    // Delete like
-    await Like.deleteOne({ _id: like._id });
-
-    // Update like count
-    const image = await Image.findById(imageId);
-    image.likeCount = Math.max(0, image.likeCount - 1);
-    await image.save();
-
-    res.json({
-      message: 'Image unliked successfully',
-      likeCount: image.likeCount
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    const like = await Like.findOneAndDelete({ user: userId, image: imageId });
+    if (!like) return res.status(404).json({ message: 'Like not found' });
+    await Image.findByIdAndUpdate(imageId, { $inc: { likeCount: -1 } });
+    res.json({ message: 'Unliked' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
-// Get user's liked images (User only)
+
+
+
+// Get all liked images for the authenticated user
 router.get('/', userAuth, async (req, res) => {
   try {
     const userId = req.userId;
-    const { sort = 'newest' } = req.query;
-
-    let sortObj = { uploadedDate: -1 };
-    if (sort === 'oldest') {
-      sortObj = { uploadedDate: 1 };
-    } else if (sort === 'popular') {
-      sortObj = { likeCount: -1 };
+    const sortParam = req.query.sort || 'newest';
+    
+    console.log(`[GET LIKES] Fetching likes for user ${userId} with sort param: ${sortParam}`);
+    
+    let likes;
+    if (sortParam === 'popular') {
+      // If popular, we still fetch all likes first, then sort by image likeCount
+      likes = await Like.find({ user: userId }).populate('image');
+      likes.sort((a, b) => {
+        const countA = a.image?.likeCount || 0;
+        const countB = b.image?.likeCount || 0;
+        return countB - countA;
+      });
+    } else {
+      const sortOrder = sortParam === 'oldest' ? 1 : -1;
+      likes = await Like.find({ user: userId })
+        .sort({ createdAt: sortOrder })
+        .populate('image');
     }
 
-    const likes = await Like.find({ user: userId })
-      .populate({
-        path: 'image',
-        options: { sort: sortObj }
-      });
+    console.log(`[GET LIKES] Found ${likes.length} raw like records`);
 
-    const likedImages = likes.map(like => ({
-      ...like.image.toObject(),
-      isLikedByUser: true
-    }));
+    const likedImages = likes
+      .filter(like => {
+        if (!like.image) {
+          console.log(`[GET LIKES] Warning: Like record ${like._id} has no associated image (deleted?)`);
+          return false;
+        }
+        return true;
+      })
+      .map(like => ({
+        ...like.image.toObject(),
+        isLikedByUser: true,
+        likedAt: like.createdAt // Include when it was liked
+      }));
 
+    console.log(`[GET LIKES] Returning ${likedImages.length} valid images to frontend`);
     res.json(likedImages);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('[GET LIKES] Critical Error:', error);
+    res.status(500).json({ message: 'Internal server error while fetching collection', error: error.message });
   }
 });
 

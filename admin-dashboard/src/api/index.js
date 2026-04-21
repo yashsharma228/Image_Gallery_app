@@ -33,6 +33,8 @@ export const authAPI = {
     api.post('/auth/admin/register', { email, password, name }),
   login: (email, password) =>
     api.post('/auth/admin/login', { email, password }),
+  firebaseLogin: (idToken) =>
+    api.post('/auth/admin/firebase-login', { idToken }),
   logout: () => api.post('/auth/logout'),
   
   checkSession: async () => {

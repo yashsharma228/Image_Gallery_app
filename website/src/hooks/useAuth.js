@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
@@ -9,68 +9,64 @@ export const useAuth = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Initial session check
+  // Initial session check and listener setup
   useEffect(() => {
-    const checkUserSession = async () => {
+    let isMounted = true;
+
+    const checkSession = async () => {
       try {
         const userData = await authService.checkSession();
-        if (userData) {
+        if (isMounted && userData) {
           setUser(userData);
         }
       } catch (err) {
         console.error("Session check failed", err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
-    checkUserSession();
-  }, []);
 
-  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          // If we already have a user from session check, we are good.
-          // But if we just logged in via Firebase (e.g. pop-up), we need to sync with backend
-          if (!user) {
-             const idToken = await firebaseUser.getIdToken();
-             const response = await authService.googleLogin(idToken);
-             setUser(response.user);
+          // Always sync with backend to get the MongoDB user object with ID
+          const idToken = await firebaseUser.getIdToken();
+          const response = await authService.googleLogin(idToken);
+          if (isMounted) {
+            setUser(response.user);
           }
         } catch (error) {
-          console.error('Login failed:', error);
-          setUser(null);
+          console.error('Login sync failed:', error);
+          if (isMounted) setUser(null);
         }
       } else {
-        // Firebase logout -> ensure backend logout
-        // Only if we previously had a user (to avoid double calls on initial load)
-        if (user) {
+        if (isMounted) {
           setUser(null);
-          await authService.logout(); 
+          // Don't call authService.logout() here automatically as it might 
+          // clear cookies we still need during session checks
         }
       }
-      setLoading(false);
+      if (isMounted) setLoading(false);
     });
 
-    return unsubscribe;
-  }, [user]); // Add user as dependency so we know when to trigger logout logic properly
+    checkSession();
 
-  const logout = async () => {
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, []);
+
+  const logout = useCallback(async () => {
     try {
-      // Sign out from Firebase first (removes Firebase session)
       await signOut(auth);
-    } catch (error) {
-      console.error('Firebase signout error:', error);
-    } finally {
-      // Always clear local storage and user data
-      authService.logout();
-      // Clear user state
+      await authService.logout();
       setUser(null);
-      // Force redirect to login page with full page reload
-      // This ensures all state is cleared and Firebase auth state is reset
       window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
     }
-  };
+  }, []);
 
   return { user, loading, logout };
 };
