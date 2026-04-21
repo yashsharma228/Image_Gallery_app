@@ -15,6 +15,7 @@ const ContentSecurityPolicy = `
     http://localhost:5000
     http://127.0.0.1:5000
     https://image-gallery-app-9x2r.onrender.com
+    https://image-gallery-app-x1jt.onrender.com
     https://identitytoolkit.googleapis.com
     https://securetoken.googleapis.com
     https://www.googleapis.com
