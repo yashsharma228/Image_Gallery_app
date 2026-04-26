@@ -13,13 +13,18 @@ const Dashboard = () => {
   const [usersLoading, setUsersLoading] = useState(false);
   const [showUsersTable, setShowUsersTable] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [admin, setAdmin] = useState(null);
+  const [admin, setAdmin] = useState(() => authAPI.getAdmin());
   const [showAdminProfile, setShowAdminProfile] = useState(false);
   const navigate = useNavigate();
 
 
 
   useEffect(() => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('TOKEN:', authAPI.getToken());
+      console.log('ADMIN:', authAPI.getAdmin());
+    }
+
     // Fetch admin data from backend session
     const fetchAdmin = async () => {
       try {
@@ -28,6 +33,9 @@ const Dashboard = () => {
           setAdmin({ ...session.user, role: session.role });
         }
       } catch (err) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('Admin session check failed:', err.response?.data || err.message);
+        }
         setAdmin(null);
       }
     };
@@ -64,8 +72,8 @@ const Dashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    authAPI.logout();
+  const handleLogout = async () => {
+    await authAPI.logout();
     navigate('/login');
   };
 

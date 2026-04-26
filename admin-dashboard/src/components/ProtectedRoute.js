@@ -3,27 +3,45 @@ import { Navigate } from 'react-router-dom';
 import { authAPI } from '../api';
 
 const ProtectedRoute = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(null); // null = loading
+  const storedToken = authAPI.getToken();
+  const storedAdmin = authAPI.getAdmin();
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    Boolean(storedToken && storedAdmin?.role === 'admin')
+  );
+  const [isCheckingSession, setIsCheckingSession] = useState(Boolean(storedToken));
 
   useEffect(() => {
     const checkAuth = async () => {
+      if (!storedToken) {
+        setIsAuthenticated(false);
+        setIsCheckingSession(false);
+        return;
+      }
+
       try {
         const session = await authAPI.checkSession();
-        // Only allow admin role in admin dashboard
-        if (session?.role === 'admin') {
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
+        setIsAuthenticated(session?.role === 'admin');
       } catch (error) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('admin');
         setIsAuthenticated(false);
+      } finally {
+        setIsCheckingSession(false);
       }
     };
-    checkAuth();
-  }, []);
 
-  if (isAuthenticated === null) {
-    return <div>Loading...</div>; // Or a proper spinner component
+    checkAuth();
+  }, [storedToken]);
+
+  if (isCheckingSession && !isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Verifying session...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!isAuthenticated) {

@@ -1,8 +1,32 @@
 const jwt = require('jsonwebtoken');
 
+const getTokenFromRequest = (req, cookieName) => {
+  const cookieToken = req.cookies?.[cookieName];
+  if (cookieToken) {
+    return cookieToken;
+  }
+
+  const customHeaderToken = req.headers['x-auth-token'] || req.headers['x-access-token'];
+  if (typeof customHeaderToken === 'string' && customHeaderToken.trim()) {
+    return customHeaderToken.trim();
+  }
+
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  if (!authHeader || typeof authHeader !== 'string') {
+    return null;
+  }
+
+  const [scheme, token] = authHeader.split(' ');
+  if (scheme !== 'Bearer' || !token) {
+    return null;
+  }
+
+  return token;
+};
+
 const adminAuth = (req, res, next) => {
   try {
-    const token = req.cookies.admin_token;
+    const token = getTokenFromRequest(req, 'admin_token');
     if (!token) {
       return res.status(401).json({ message: 'No token provided' });
     }
@@ -19,7 +43,7 @@ const adminAuth = (req, res, next) => {
 
 const userAuth = (req, res, next) => {
   try {
-    const token = req.cookies.user_token;
+    const token = getTokenFromRequest(req, 'user_token');
     
     if (!token) {
       return res.status(401).json({ message: 'No token provided' });
@@ -33,4 +57,4 @@ const userAuth = (req, res, next) => {
   }
 };
 
-module.exports = { adminAuth, userAuth };
+module.exports = { adminAuth, userAuth, getTokenFromRequest };

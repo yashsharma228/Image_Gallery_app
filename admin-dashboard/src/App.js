@@ -34,7 +34,7 @@ function AppRoutes() {
 function App() {
   return (
     <div className="min-h-screen bg-gray-50 text-black">
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AppRoutes />
       </Router>
     </div>

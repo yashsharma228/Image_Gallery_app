@@ -13,7 +13,8 @@ const app = express();
 app.use(cookieParser());
 app.use(cors({
   origin: true,
-  credentials: true
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Auth-Token', 'X-Access-Token']
 }));
 // Set Content Security Policy to allow fonts and images from self and data URIs
 app.use(

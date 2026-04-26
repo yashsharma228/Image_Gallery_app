@@ -1,11 +1,45 @@
 import axios from 'axios';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/api';
+const getStoredToken = () => localStorage.getItem('token');
+const clearStoredSession = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('admin');
+};
+
+const getStoredAdmin = () => {
+  const rawAdmin = localStorage.getItem('admin');
+  if (!rawAdmin) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(rawAdmin);
+  } catch (error) {
+    localStorage.removeItem('admin');
+    return null;
+  }
+};
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true // Send cookies with every request
 });
+
+api.interceptors.request.use(
+  (config) => {
+    const token = getStoredToken();
+    if (token) {
+      config.headers = {
+        ...config.headers,
+        ...(config.headers?.Authorization ? {} : { Authorization: `Bearer ${token}` }),
+        ...(config.headers?.['X-Auth-Token'] ? {} : { 'X-Auth-Token': token }),
+      };
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // User endpoints (admin only)
 export const usersAPI = {
@@ -16,13 +50,12 @@ export const usersAPI = {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Clear any local user state if needed, but the cookie is handled by browser
-      // Maybe redirect to login if not already there
-      if (!window.location.pathname.includes('/login')) {
-         window.location.href = '/login';
-      }
+    const requestUrl = error.config?.url || '';
+
+    if (error.response?.status === 401 && requestUrl.includes('/auth/me')) {
+      clearStoredSession();
     }
+
     return Promise.reject(error);
   }
 );
@@ -35,11 +68,28 @@ export const authAPI = {
     api.post('/auth/admin/login', { email, password }),
   firebaseLogin: (idToken) =>
     api.post('/auth/admin/firebase-login', { idToken }),
-  logout: () => api.post('/auth/logout'),
+  logout: async () => {
+    try {
+      await api.post('/auth/logout');
+    } finally {
+      clearStoredSession();
+    }
+  },
   
   checkSession: async () => {
     try {
-      const response = await api.get('/auth/me');
+      const token = getStoredToken();
+      const response = await api.get('/auth/me', token ? {
+        headers: { Authorization: `Bearer ${token}` },
+      } : undefined);
+
+      if (response.data?.role === 'admin' && response.data?.user) {
+        localStorage.setItem('admin', JSON.stringify({
+          ...response.data.user,
+          role: response.data.role,
+        }));
+      }
+
       return response.data;
     } catch (error) {
       throw error;
@@ -53,8 +103,8 @@ export const authAPI = {
     // For now, return false to force a checkSession call or rely on ProtectedRoute logic
     return false; 
   },
-  getToken: () => null,
-  getAdmin: () => null
+  getToken: () => getStoredToken(),
+  getAdmin: () => getStoredAdmin()
 };
 
 // Image endpoints

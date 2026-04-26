@@ -8,6 +8,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
    const [showPassword, setShowPassword] = useState(false);
@@ -15,6 +16,7 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     setLoading(true);
     setError('');
+    setSuccess('');
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
@@ -24,7 +26,16 @@ const Login = () => {
       if (response.data && response.data.token) {
         localStorage.setItem('token', response.data.token);
       }
-      navigate('/dashboard');
+      if (response.data?.admin) {
+        localStorage.setItem('admin', JSON.stringify({
+          ...response.data.admin,
+          role: 'admin',
+        }));
+      }
+
+      const adminName = response.data?.admin?.name || result.user.displayName || result.user.email;
+      setSuccess(`Welcome back, ${adminName}! Opening dashboard...`);
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Google Login failed');
     } finally {
@@ -36,14 +47,22 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
       const response = await authAPI.login(email, password);
-      // Store token in localStorage for Authorization header
       if (response.data && response.data.token) {
         localStorage.setItem('token', response.data.token);
       }
-      navigate('/dashboard');
+      if (response.data?.admin) {
+        localStorage.setItem('admin', JSON.stringify({
+          ...response.data.admin,
+          role: 'admin',
+        }));
+      }
+      const adminName = response.data?.admin?.name || email;
+      setSuccess(`Welcome back, ${adminName}! Opening dashboard...`);
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       const data = err.response?.data;
       const msg = data?.message;
@@ -66,6 +85,15 @@ const Login = () => {
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            {success}
           </div>
         )}
 
